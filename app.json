@@ -10,14 +10,16 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.EXPOPOC"
+      "bundleIdentifier": "com.anonymous.EXPOPOC",
+      "appleTeamId": "K8336TU553"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.EXPOPOC"
     },
     "web": {
       "bundler": "metro",
