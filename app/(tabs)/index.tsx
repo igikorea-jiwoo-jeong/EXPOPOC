@@ -21,7 +21,7 @@ const EMOTION_TO_ANIMATION: Record<string, string> = {
   joy: 'jump_dance',
   sad: 'crying',
   angry: 'stomp',
-  confused: 'head_tilt',
+  // confused: 'head_tilt',
   tired: 'yawn',
 };
 
@@ -45,7 +45,6 @@ Choose one word from the list that best describes the user's emotion:
 joy  
 sad  
 angry  
-confused  
 tired
 
 Only output one word, nothing else.

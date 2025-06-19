@@ -27,15 +27,35 @@
 # print("✅ 변환 성공: dialoGPT-small.pt 저장 완료")
 
 
+# import torch
+
+# class SimpleModel(torch.nn.Module):
+#     def forward(self, x):
+#         return x * 2
+
+# model = SimpleModel()
+# example_input = torch.tensor([1.0])
+# # scripted_model = torch.jit.script(model)
+# # scripted_model.save("simple.pte")
+# traced = torch.jit.trace(model, example_input)
+# traced.save("simple.pte")
+
+
+from transformers import DistilBertForSequenceClassification, DistilBertTokenizerFast
 import torch
 
-class SimpleModel(torch.nn.Module):
-    def forward(self, x):
-        return x * 2
+# 모델명 (감정 분석용 pretrained 모델 예시)
+model_name = "distilbert-base-uncased-finetuned-sst-2-english"
 
-model = SimpleModel()
-example_input = torch.tensor([1.0])
-# scripted_model = torch.jit.script(model)
-# scripted_model.save("simple.pte")
-traced = torch.jit.trace(model, example_input)
-traced.save("simple.pte")
+# 토크나이저 로드
+tokenizer = DistilBertTokenizerFast.from_pretrained(model_name)
+
+# 모델 로드 (감정 분석 등 downstream task가 fine-tuned된 모델)
+model = DistilBertForSequenceClassification.from_pretrained(model_name)
+
+model.eval()
+example_input = tokenizer("Example input text", return_tensors="pt")
+traced_model = torch.jit.trace(model, example_input["input_ids"], strict=False)
+traced_model.save("distilbert_sentiment.pt")
+# 토크나이저 저장
+tokenizer.save_pretrained("./tokenizer_distilbert")
