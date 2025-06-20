@@ -40,6 +40,7 @@ export default function HomeScreen() {
   const getEmotionPrompt = (userText: string) => `
 User said: ${userText}
 
+You are an expert emotion classifier. 
 Choose one word from the list that best describes the user's emotion:
 
 joy  
