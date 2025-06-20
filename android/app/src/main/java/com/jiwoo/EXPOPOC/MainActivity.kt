@@ -1,4 +1,4 @@
-package com.anonymous.EXPOPOC
+package com.jiwoo.EXPOPOC
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.EXPOPOC",
+      "bundleIdentifier": "com.jiwoo.EXPOPOC",
       "appleTeamId": "K8336TU553"
     },
     "android": {
@@ -19,7 +19,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.EXPOPOC"
+      "package": "com.jiwoo.EXPOPOC"
     },
     "web": {
       "bundler": "metro",
@@ -36,10 +36,12 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "onnxruntime-react-native"
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "jsEngine": "jsc"
   }
 }
