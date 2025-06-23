@@ -93,6 +93,12 @@ Only output one word, nothing else.
 
   const [result, setResult] = useState<Message[] | null>(null);
 
+  const clearResult = () => {
+    setEmotion(null);
+    setAnimation(null);
+    setResult(null);
+  };
+
   return (
     <View style={styles.container}>
       <Image
@@ -134,23 +140,33 @@ Only output one word, nothing else.
       )}
 
       {result && Array.isArray(result) && (
-        <ScrollView
-          style={styles.resultScroll}
-          contentContainerStyle={styles.resultContainer}
-        >
-          {result.map((item, index) => (
-            <View key={index} style={styles.message}>
-              <Text
-                style={[styles.role, { color: isDarkMode ? 'white' : 'black' }]}
-              >
-                {item.role} :
-              </Text>
-              <Text style={{ color: isDarkMode ? 'white' : 'black' }}>
-                {item.content}
-              </Text>
-            </View>
-          ))}
-        </ScrollView>
+        <>
+          <ScrollView
+            style={styles.resultScroll}
+            contentContainerStyle={styles.resultContainer}
+          >
+            {result.map((item, index) => (
+              <View key={index} style={styles.message}>
+                <Text
+                  style={[
+                    styles.role,
+                    { color: isDarkMode ? 'white' : 'black' },
+                  ]}
+                >
+                  {item.role} :
+                </Text>
+                <Text style={{ color: isDarkMode ? 'white' : 'black' }}>
+                  {item.content}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+          <Button
+            title="결과 초기화"
+            onPress={clearResult}
+            disabled={loading}
+          />
+        </>
       )}
     </View>
   );
