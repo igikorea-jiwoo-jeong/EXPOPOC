@@ -2,102 +2,64 @@ import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import { StatusBar } from 'expo-status-bar';
 import { InferenceSession, Tensor } from 'onnxruntime-react-native';
-import { Alert, Button, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+
+// tokenizer.json은 JSON 형태로, 사전 데이터가 들어있다고 가정
+import tokenizerJson from '@/assets/onnx_model/tokenizer.json';
 
 let myModel: InferenceSession;
 
 async function loadModel() {
-  try {
-    // 1. 모델 자산을 불러오기
-    const asset = Asset.fromModule(require('@/assets/onnx_model/model.onnx'));
-    await asset.downloadAsync(); // asset.localUri 생성
+  const asset = Asset.fromModule(require('@/assets/onnx_model/model.onnx'));
+  await asset.downloadAsync();
 
-    // 2. FileSystem documentDirectory로 복사
-    const modelPath = FileSystem.documentDirectory + 'model.onnx';
+  console.log('modelPath');
+  const modelPath = FileSystem.documentDirectory + 'model.onnx';
 
-    await FileSystem.copyAsync({
-      from: asset.localUri!,
-      to: modelPath,
-    });
+  await FileSystem.copyAsync({
+    from: asset.localUri!,
+    to: modelPath,
+  });
 
-    console.log('Model copied to:', modelPath);
-
-    // 3. 복사된 경로로 ONNX 모델 세션 생성
-    myModel = await InferenceSession.create(modelPath);
-    console.log('myModel loaded:', myModel);
-
-    console.log('inputNames:', myModel.inputNames);
-
-    Alert.alert(
-      'Model loaded',
-      `input: ${myModel.inputNames}, output: ${myModel.outputNames}`
-    );
-  } catch (e) {
-    console.error('Model load failed:', e);
-    Alert.alert('Load failed', String(e));
-    throw e;
-  }
+  myModel = await InferenceSession.create(modelPath);
+  Alert.alert('Model loaded');
 }
 
-async function runModel() {
-  try {
-    const inputIds = new Tensor(
-      'int64',
-      new BigInt64Array([101n, 2023n, 2003n, 1037n, 7953n, 102n]),
-      [1, 6]
-    );
-    const attentionMask = new Tensor(
-      'int64',
-      new BigInt64Array([1n, 1n, 1n, 1n, 1n, 1n]),
-      [1, 6]
-    );
+// 아주 단순한 whitespace tokenizer + tokenizerJson 이용해 token ids 생성하는 예시 (예시용, 실제는 subword tokenizer 여야 함)
+function simpleTokenize(text: string): number[] {
+  const vocab = tokenizerJson.model.vocab; // 예: { "i":1, "love":2, "you":3, ... }
+  const tokens = text.toLowerCase().split(/\s+/);
 
-    const feeds: Record<string, Tensor> = {
-      input_ids: inputIds,
-      attention_mask: attentionMask,
-    };
-    const fetches = await myModel.run(feeds);
-    const output = fetches[myModel.outputNames[0]];
-    console.log(output);
-
-    if (!output) {
-      Alert.alert('No output', `${myModel.outputNames[0]}`);
-    } else {
-      Alert.alert(
-        'Inference success',
-        `shape: ${output.dims}, data-length: ${output.data.length}`
-      );
-    }
-  } catch (e) {
-    console.log(e);
-
-    Alert.alert('Inference failed', `${e}`);
-    throw e;
-  }
-}
-
-const emotionMap = {
-  joy: 'jump_dance',
-  sad: 'slow_sit',
-  angry: 'stomp',
-  tired: 'yawn',
-};
-
-function mapEmotionToAnimation(emotion: string): string {
-  return emotionMap[emotion] ?? 'head_tilt';
+  return tokens.map((token) => vocab[token] ?? vocab['[UNK]']);
 }
 
 async function predictEmotion(userInput: string): Promise<string> {
-  // tokenizer가 있다면 여기에 입력 텍스트 → input_ids, attention_mask 처리
+  if (!myModel) throw new Error('Model not loaded');
+
+  const ids = simpleTokenize(userInput);
+
+  const length = ids.length;
+
+  // padding 길이 맞추기 (예: 20)
+  const maxLen = 20;
+  const inputIdsArr = new Array(maxLen).fill(0);
+  const attentionMaskArr = new Array(maxLen).fill(0);
+
+  for (let i = 0; i < Math.min(length, maxLen); i++) {
+    inputIdsArr[i] = ids[i];
+    attentionMaskArr[i] = 1;
+  }
+
   const inputIds = new Tensor(
     'int64',
-    new BigInt64Array([101n, 2023n, 2003n, 1037n, 7953n, 102n]),
-    [1, 6]
+    BigInt64Array.from(inputIdsArr.map((i) => BigInt(i))),
+    [1, maxLen]
   );
   const attentionMask = new Tensor(
     'int64',
-    new BigInt64Array([1n, 1n, 1n, 1n, 1n, 1n]),
-    [1, 6]
+    BigInt64Array.from(attentionMaskArr.map((i) => BigInt(i))),
+    [1, maxLen]
   );
 
   const feeds: Record<string, Tensor> = {
@@ -107,34 +69,55 @@ async function predictEmotion(userInput: string): Promise<string> {
 
   const fetches = await myModel.run(feeds);
   const output = fetches['logits'] as Tensor;
-
   const logits = output.data as Float32Array;
+
+  console.log('logits', logits);
+
   const maxIndex = logits.indexOf(Math.max(...logits));
+  const labels = ['positive', 'negative']; // 모델에 맞게 조정
 
-  console.log(logits);
-
-  console.log(maxIndex);
-
-  const labels = ['joy', 'sad'];
-  return labels[maxIndex]; // 예: "sad"
+  return labels[maxIndex];
 }
 
-async function onUserSubmit(text: string) {
-  const emotion = await predictEmotion(text);
-  const animation = mapEmotionToAnimation(emotion);
-  Alert.alert(`Emotion: ${emotion}`, `Play animation: ${animation}`);
+const emotionMap = {
+  positive: 'jump_dance',
+  negative: 'slow_sit',
+};
+
+function mapEmotionToAnimation(emotion: string): string {
+  return emotionMap[emotion] ?? 'idle';
 }
 
 export default function App() {
+  const [text, setText] = useState('');
+
+  const onLoad = async () => {
+    await loadModel();
+  };
+
+  const onAnalyze = async () => {
+    try {
+      const emotion = await predictEmotion(text);
+      const animation = mapEmotionToAnimation(emotion);
+      Alert.alert(`Emotion: ${emotion}`, `Play animation: ${animation}`);
+    } catch (e) {
+      Alert.alert('분석 실패', String(e));
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Text>ONNX Runtime React Native Basic Usage</Text>
-      <Button title="Load model" onPress={loadModel} />
-      <Button title="Run inference" onPress={runModel} />
-      <Button
-        title="분석하기"
-        onPress={() => onUserSubmit('I’m feeling very tired today')}
+      <Text>감정 분석 데모</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="문장을 입력하세요"
+        value={text}
+        onChangeText={setText}
       />
+
+      <Button title="모델 로드" onPress={onLoad} />
+      <Button title="감정 분석" onPress={onAnalyze} />
 
       <StatusBar style="auto" />
     </View>
@@ -144,8 +127,16 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 20,
     backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+  },
+  input: {
+    height: 50,
+    borderColor: '#888',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginVertical: 20,
   },
 });
