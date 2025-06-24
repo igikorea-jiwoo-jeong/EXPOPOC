@@ -21,7 +21,9 @@ export default function App() {
     const ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
 
+    // ✅ GLB 파일을 Asset으로 로드
     const asset = Asset.fromModule(require('@/assets/glbs/barista.glb'));
+
     await asset.downloadAsync();
 
     try {
@@ -29,6 +31,7 @@ export default function App() {
         asset.uri.split('?platform')[0],
         undefined,
         (loader) => {
+          // GLTFLoader를 이렇게 require로 불러오기
           const {
             GLTFLoader,
           } = require('three/examples/jsm/loaders/GLTFLoader');
@@ -36,21 +39,16 @@ export default function App() {
         }
       );
 
-      model.scene.traverse((child: any) => {
-        if (child.isMesh && child.material?.map) {
-          child.material.map.flipY = false;
-          child.material.needsUpdate = true;
-        }
-      });
-
       scene.add(model.scene);
-      modelRef.current = model.scene;
+      modelRef.current = model;
 
       const animate = () => {
         requestAnimationFrame(animate);
-        if (modelRef.current) {
+
+        if (modelRef.current && modelRef.current.rotation) {
           modelRef.current.rotation.y += 0.01;
         }
+
         renderer.render(scene, camera);
         gl.endFrameEXP();
       };
@@ -64,10 +62,10 @@ export default function App() {
     <View style={styles.container}>
       <GLView
         key={glViewKey}
-        style={{ flex: 1 }}
+        style={StyleSheet.absoluteFill}
         onContextCreate={onContextCreate}
       />
-      <View style={styles.buttonContainer}>
+      <View style={styles.buttonOverlay}>
         <Button
           title="🔄 새로고침"
           onPress={() => setGlViewKey((prev) => prev + 1)}
@@ -80,13 +78,14 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
   },
-  buttonContainer: {
-    justifyContent: 'center',
+  buttonOverlay: {
+    position: 'absolute',
+    bottom: 100,
+    left: 0,
+    right: 0,
     alignItems: 'center',
+    zIndex: 1, // ✅ 버튼을 위로
+    backgroundColor: '#fff',
   },
 });
