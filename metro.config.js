@@ -7,7 +7,16 @@ module.exports = (async () => {
   const config = await getDefaultConfig(projectRoot);
 
   // 기존 assetExts 배열을 확장
-  config.resolver.assetExts.push('bin', 'db', 'onnx', 'ort');
+  config.resolver.assetExts.push(
+    'bin',
+    'db',
+    'onnx',
+    'ort',
+    'glb',
+    'gltf',
+    'png',
+    'jpg'
+  );
 
   return config;
 })();
