@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.jiwoo.EXPOPOC",
+      "bundleIdentifier": "com.lango.EXPOPOC",
       "appleTeamId": "K8336TU553"
     },
     "android": {
@@ -19,7 +19,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.jiwoo.EXPOPOC"
+      "package": "com.lango.EXPOPOC"
     },
     "web": {
       "bundler": "metro",

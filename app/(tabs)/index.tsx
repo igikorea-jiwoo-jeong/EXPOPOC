@@ -18,11 +18,10 @@ import {
 } from 'react-native-executorch';
 
 const EMOTION_TO_ANIMATION: Record<string, string> = {
-  joy: 'jump_dance',
-  sad: 'crying',
-  angry: 'stomp',
-  // confused: 'head_tilt',
-  tired: 'yawn',
+  hi: 'hi',
+  no: 'no',
+  talk: 'talk_1',
+  make: 'make',
 };
 
 export default function HomeScreen() {
@@ -43,10 +42,10 @@ User said: ${userText}
 You are an expert emotion classifier. 
 Choose one word from the list that best describes the user's emotion:
 
-joy  
-sad  
-angry  
-tired
+hi
+no
+talk
+make
 
 Only output one word, nothing else.
 `;
@@ -77,7 +76,7 @@ Only output one word, nothing else.
       const cleanedEmotion = rawEmotion.replace(/^['"]|['"]$/g, '');
 
       // 미리 정의한 애니메이션 매핑에서 찾기
-      const anim = EMOTION_TO_ANIMATION[cleanedEmotion] ?? 'default_animation';
+      const anim = EMOTION_TO_ANIMATION[cleanedEmotion] ?? 'idle';
 
       setEmotion(cleanedEmotion);
       setAnimation(anim);

@@ -1,4 +1,4 @@
-package com.jiwoo.EXPOPOC
+package com.lango.EXPOPOC
 
 import android.app.Application
 import android.content.res.Configuration

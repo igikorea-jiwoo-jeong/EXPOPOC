@@ -14,7 +14,6 @@ async function loadModel() {
   const asset = Asset.fromModule(require('@/assets/onnx_model/model.onnx'));
   await asset.downloadAsync();
 
-  console.log('modelPath');
   const modelPath = FileSystem.documentDirectory + 'model.onnx';
 
   await FileSystem.copyAsync({
@@ -74,7 +73,7 @@ async function predictEmotion(userInput: string): Promise<string> {
   console.log('logits', logits);
 
   const maxIndex = logits.indexOf(Math.max(...logits));
-  const labels = ['positive', 'negative']; // 모델에 맞게 조정
+  const labels = ['negative', 'positive'];
 
   return labels[maxIndex];
 }
